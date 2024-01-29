@@ -584,9 +584,9 @@ multiqc 是运行MultiQC的命令
 创建脚本：trim_galorez_多样本qc
 #!/bin/bash
 for fn in /u3/2023.test/rawdata/*_1.fq.gz; # 这是一个for循环，用于遍历rawdata目录下的所有以_1.fq.gz结尾的文件，例如N10_1.fq.gz
-do # 循环开始
-samp=`basename ${fn} _1.fq.gz` # 这是一个变量赋值，用于获取文件的基本名称，即去掉_1.fq.gz的部分，例如N10
-echo "Processing sample ${samp}" # 这是一个输出语句，用于打印正在处理的样本名称
+do #循环开始
+samp=`basename ${fn} _1.fq.gz` #这是一个变量赋值，用于获取文件的基本名称，即去掉_1.fq.gz的部分，例如N10
+echo "Processing sample ${samp}" #这是一个输出语句，用于打印正在处理的样本名称
 trim_galore -q 20 --phred33 --stringency 4 --length 25 -e 0.1 --clip_R1 9 --clip_R2 9 --fastqc --paired /u3/2023.test/rawdata/${samp}_1.fq.gz /u3/2023.test/rawdata/${samp}_2.fq.gz --gzip -o /home/hekun/cleandata/trim_galoredata
 done
 

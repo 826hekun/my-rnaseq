@@ -355,5 +355,203 @@ Traceback (most recent call last):
   File "/home/hekun/miniconda3/lib/python3.11/site-packages/requests/models.py", line 971, in json
     return complexjson.loads(self.text, **kwargs)
 
+# 软件安装
+
+要删除data文件夹下的所有子文件夹，只保留子文件夹中的文件
+可以使用find命令来查找data文件夹下的所有子文件夹，然后使用mv命令将子文件夹中的文件移动到data文件夹，最后使用rm命令删除空的子文件夹。具体的步骤如下：
+打开终端，进入到data文件夹所在的目录。
+输入以下命令，查找data文件夹下的所有子文件夹，并将结果保存到一个临时文件中。
+find data -type d > tmp.txt
+输入以下命令，读取临时文件中的每一行，将子文件夹中的文件移动到data文件夹，然后删除子文件夹。
+while read line; do mv "$line"/* data; rmdir "$line"; done < tmp.txt
+输入以下命令，删除临时文件。
+rm tmp.txt
+这样，你就可以实现你想要的效果，data文件夹下只剩下文件，没有子文件夹了。
+注意：在执行上述命令之前，建议你先备份你的数据，以防万一出现意外。另外，如果你的文件名中包含空格或特殊字符，你可能需要对文件名进行转义或引用，以避免错误。
+
+
+
+#转录组比对和定量 {#}
+mkdir -p ~/transcriptome/soft
+cd ~/transcriptome/soft
+
+#把soft目录加大环境变量中，新安装的软件都软链到soft目录
+cat <<END >>~/.bash_profile
+export PATH=~/transcriptome/soft:~/anaconda3/bin:\$PATH
+END
+
+wget -c https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh -O Anaconda3-2023.09-0-Linux-x86_64.sh
+bash Anaconda3-2023.09-0-Linux-x86_64.sh -b -f -p ${HOME}/annaconda3
+
+#必须执行
+source ~/.bash_profile
+
+
+conda config --add channels conda-forge # Lowest priority
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+conda config --add channels r # Optional
+conda config --add channels defaults
+conda config --add channels bioconda 
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/msys2/
+#Anocanda清华镜像
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/ 
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/ 
+#清华通道, 最高优先级
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/ 
+conda config --set show_channel_urls yes
+source ~/.bash_profile
+
+
+
+#注意： conda安装的samtools不能使用samtools tview, 需要自己重新编译安装
+conda install -y -q fastqc &
+conda install -y -q  star &
+conda install -y -q  HISAT2&
+conda install -y -q  RSEM&
+conda install -y -q stringtie &
+conda install -y -q sra-tools &
+conda install -y -q  trimmomatic &
+#下载之后，放入环境变量即可使用
+
+cd ~/transcriptome/soft
+wget -c ftp://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bedSort
+wget -c ftp://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bedGraphToBigWig
+wget -c ftp://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred
+wget -c ftp://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/genePredToBed
+
+
+#安装gffcompare
+mkdir -p ~/transcriptome/soft/gffcom
+cd ~/transcriptome/soft/gffcom
+git clone https://github.com/gpertea/gclib
+git clone https://github.com/gpertea/gffcompare
+cd gffcompare
+make release
+ln -sf `pwd`/gffcompare ~/transcriptome/soft
+
+cd ~/transcriptome/soft/gffcom
+git clone https://github.com/gpertea/gffread
+cd gffread
+make
+ln -sf `pwd`/gffread ~/transcriptome/soft
+
+#########逐个安装##################################################################
+##SRA toolkit <https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software>, 根据服务器操作系统类型下载对应的二进制编码包，下载解压放到环境变量即可使用。
+##CentOS下地址：<https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.9.0/sratoolkit.2.9.0-centos_linux64.tar.gz>。
+wget -c https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.9.0/sratoolkit.2.9.0-centos_linux64.tar.gz
+tar xvzf sratoolkit.2.9.0-centos_linux64.tar.gz
+ln -s `pwd`/sratoolkit.2.9.0-centos_linux64/bin/fastq-dump ~/transcriptome/soft
+##若运行成功，则输出为 ~/transcriptome/soft/fastq-dump
+which fastq-dump
+
+##Fastqc软件安装
+##yum install java-1.8.0-openjdk.x86_64 # 如果需要时安装java
+cd ~/transcriptome/soft
+wget -c http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip
+unzip fastqc_v0.11.5.zip
+chmod 755 FastQC/fastqc
+##假设~/transcriptome/soft目录在环境变量中
+ln -s `pwd`/FastQC/fastqc ~/transcriptome/soft/
+
+##Trimmomatic安装
+
+#cd ~/transcriptome/soft
+#wget -c http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.36.zip
+#unzip Trimmomatic-0.36.zip
+#cd Trimmomatic-0.36
+#echo "java -jar \$(dirname \$(readlink -f \$0))/trimmomatic-0.36.jar \$*" >trimmomatic.sh
+#chmod 755 trimmomatic.sh
+##假设~/transcriptome/soft目录在环境变量中
+#ln -s `pwd`/trimmomatic.sh ~/transcriptome/soft/
+
+##Salmon安装
+
+#wget -c https://github.com/COMBINE-lab/salmon/archive/refs/tags/v1.10.1.tar.gz
+#tar xvzf v1.10.1.tar.gz
+#ln -s `pwd`/v1.10.1/bin/salmon ~/transcriptome/soft
+
+###安装conda
+
+#cd ~/transcriptome/soft
+#wget -c -c https://repo.anaconda.com/archive/Anaconda2-5.1.0-Linux-x86_64.sh
+#bash Anaconda2-5.1.0-Linux-x86_64.sh -b -f 
+##默认安装在~/anaconda2中
+##cd ~/transcriptome/soft
+##tar xvf samtools-1.6.tar
+##cd samtools-1.6
+##make
+##ln -sf `pwd`/samtools ~/transcriptome/soft/
+
+###采用STAR/HISAT2构建索引 
+##[HISAT2](http://ccb.jhu.edu/transcriptome/software/hisat2/index.shtml)安装
+#cd ~/transcriptome/soft
+#wget -c ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-Linux_x86_64.zip
+#unzip hisat2-2.1.0-Linux_x86_64.zip
+#ln -s `pwd`/hisat2-2.1.0/* ~/transcriptome/soft
+
+##STAR
+#cd ~/transcriptome/soft
+#wget https://github.com/alexdobin/STAR/archive/2.6.0c.zip -O STAR.2.6.0c.zip
+#unzip STAR.2.6.0c.zip
+#ln -s `pwd`/STAR-2.6.0c/bin/Linux_x86_64_static/* ~/transcriptome/soft
+
+##RSeQC是一个python包，pip安装就可以
+#cd ~/transcriptome/soft
+#ln -s ~/anaconda2/include/lzo ~/anaconda2/include/python2.7/
+#ln -s ~/anaconda2/include/lzo/* ~/anaconda2/include/python2.7/
+#pip install -i https://pypi.tuna.tsinghua.edu.cn/simple RSeQC
+##下面三个脚本 geneBody_coverage2.py, read_distribution.py, RPKM_saturation.py 
+##都是RSeQC的一个子工具
+##HT-seq安装
+#pip install -i https://pypi.tuna.tsinghua.edu.cn/simple htseq
+
+##R包安装
+#下面两句注释掉吧，在R中运行，改镜像的
+##site="https://mirrors.tuna.tsinghua.edu.cn/CRAN"
+##options(BioC_mirror="http://mirrors.ustc.edu.cn/bioc/")
+###转录本拼装
+##[StringTie](https://ccb.jhu.edu/transcriptome/software/stringtie/index.shtml?t=manual)转录本拼装
+##软件安装
+##stringtie
+#wget -c http://ccb.jhu.edu/transcriptome/software/stringtie/dl/stringtie-1.3.4d.Linux_x86_64.tar.gz
+#tar xvzf stringtie-1.3.4d.Linux_x86_64.tar.gz
+#chmod 755 stringtie-1.3.4d.Linux_x86_64/stringtie
+##假设~/transcriptome/soft在环境变量中
+#ln -sf `pwd`/stringtie-1.3.4d.Linux_x86_64/stringtie ~/transcriptome/soft
+
+##安装prepDE.py
+##cd ~/transcriptome/soft
+##wget -c https://ccb.jhu.edu/transcriptome/software/stringtie/dl/prepDE.py
+##chmod 755 prepDE.py
+##ln -s `pwd`/prepDE.py ~/transcriptome/soft
+
+##TPM生成 RSEM安装
+##cd ~/transcriptome/soft
+##wget -c https://github.com/deweylab/RSEM/archive/v1.3.1.tar.gz -O RSEM.v1.3.1.zip
+##tar xvzf RSEM.v1.3.1.zip
+##cd RSEM-1.3.1
+##make && make install
+##wget -c https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm -O ~/transcriptome/soft/cpanm
+##cpanm Env
+
+##差异剪接分析 {#alternative_splicing}
+###软件安装
+##rMATS
+#pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pysam
+##yum install gsl-devel.x86_64 lapack-devel blas-devel
+#cd ~/transcriptome/soft
+#wget -c https://sourceforge.net/projects/rnaseq-mats/files/MATS/rMATS.4.0.2.tgz
+#tar xvzf rMATS.4.0.2.tgz
+#python -c "import sys; print sys.maxunicode"
+##输出为1114111，使用rMATS-turbo-Linux-UCS4
+#cd rMATS.4.0.2/rMATS-turbo-Linux-UCS4
+#chmod 755 rmats.py
+##默认使用全路径调用，如果想简化些，需要修改rmats.py源文件
+##第246行修改如下：
+##root_dir = os.path.dirname(os.path.realpath(__file__))
+#ln -s `pwd`/rmats.py ~/transcriptome/soft
+
+##sashimiplot绘制
+#pip install -i https://pypi.tuna.tsinghua.edu.cn/simple rmats2sashimiplot 
 
 

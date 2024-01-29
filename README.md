@@ -554,4 +554,44 @@ ln -s `pwd`/FastQC/fastqc ~/transcriptome/soft/
 ##sashimiplot绘制
 #pip install -i https://pypi.tuna.tsinghua.edu.cn/simple rmats2sashimiplot 
 
+# 质控
+## 一：fastqc
+cd /u3/2023.test/rawdata 
+#切换到数据所在的目录 
+fastqc *.fq.gz -o /home/hekun/salmon_work 
+#对所有的fq.gz文件进行质控，并将结果输出到指定的目录，-o 是指一个参数，用于指定FastQC生成的报告文件的储存路径。这样，你就可以在/home/hekun/salmon_work目录下查看fastqc生成的报告文件，它们的后缀是.html或.zip。你可以用浏览器打开.html文件，查看每个样本的质量评估结果。
+## 二：批量评估multiqc
+multiqc -d /home/hekun/salmon_work -o 输出报告的目录
+multiqc 是运行MultiQC的命令
+-d 是指定要分析的目录，后面跟着目录的路径，这里是表示当前目录
+-o 是指定输出报告的目录，后面跟着目录的路径，这里是 multiqc 表示在当前目录下创建一个名为multiqc的文件夹
+这段代码的作用是在当前目录下搜索所有支持的生物信息学工具的输出文件，并将分析结果输出到multiqc文件夹中
+## 三：查看结果
+推荐：使用MobaXterm软件登陆服务器
+不推荐：通过ssh远程访问Unix/Linux服务器上的html文件
+- 【前置步骤】：在服务器上把网页挂载到特定的端口
+- 【本机操作】：通过ssh -L选项连接，关联本地端口到对应的远程端口
+- 【顺利完成】：在浏览器通过localhost:8000/xxx.html直接访问
+具体的操作步骤如下：
 
+1. 打开本地电脑的终端或命令行窗口，输入`ssh username@server`（ssh hekun@192.168.70.175 -p 22），其中`username`是您在远程服务器上的用户名，`server`是远程服务器的IP地址或域名。按回车键，输入密码，登录到远程服务器。
+2. 在远程服务器上，使用`cd`命令进入存放html文件的文件夹，例如`cd /home/username/html`。
+3. 在远程服务器上，使用`python3 -m http.server 8000`命令启动一个简单的HTTP服务器，将当前文件夹下的所有文件挂载到8000端口。如果您想使用其他端口，可以修改命令中的数字。注意不要关闭这个终端或命令行窗口。
+4. 打开本地电脑的另一个终端或命令行窗口，输入`ssh -L 8000:localhost:8000 hekun@192.168.70.175`，其中`username`和`server`与第一步相同。按回车键，输入密码，建立一个ssh隧道连接，将本地电脑的8000端口映射到远程服务器的8000端口。
+5. 打开本地电脑的浏览器，在地址栏输入`localhost:8000/xxx.html`，其中`xxx.html`是想查看的html文件的名称。按回车键，就可以在浏览器中看到远程服务器上的html文件了。
+## 四：使用trim-galore去除低质量的reads和adaptor
+若第三步不合格，使用trim-galore去除低质量的reads和adaptor
+创建脚本：trim_galorez_多样本qc
+#!/bin/bash
+for fn in /u3/2023.test/rawdata/*_1.fq.gz; # 这是一个for循环，用于遍历rawdata目录下的所有以_1.fq.gz结尾的文件，例如N10_1.fq.gz
+do # 循环开始
+samp=`basename ${fn} _1.fq.gz` # 这是一个变量赋值，用于获取文件的基本名称，即去掉_1.fq.gz的部分，例如N10
+echo "Processing sample ${samp}" # 这是一个输出语句，用于打印正在处理的样本名称
+trim_galore -q 20 --phred33 --stringency 4 --length 25 -e 0.1 --clip_R1 9 --clip_R2 9 --fastqc --paired /u3/2023.test/rawdata/${samp}_1.fq.gz /u3/2023.test/rawdata/${samp}_2.fq.gz --gzip -o /home/hekun/cleandata/trim_galoredata
+done
+
+运行脚本bash trim-galore去除低质量的reads和adaptor
+![image](https://github.com/826hekun/my-rnaseq/assets/157109892/229fcea3-49dd-4cae-b3e2-c76971592459)
+![image](https://github.com/826hekun/my-rnaseq/assets/157109892/47c9bbd4-d96b-4782-85c3-4f78043ab951)
+
+# salmon定量

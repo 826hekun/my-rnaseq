@@ -1,6 +1,7 @@
 # my-rnaseq
 争取早日成为生信高手
-# orkj3401772k2ei3
+# Linux操作基础 
+orkj3401772k2ei3
 0heyuanyu@
 
 home光标回到开头

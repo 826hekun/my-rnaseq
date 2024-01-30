@@ -1,6 +1,7 @@
 # my-rnaseq
 争取早日成为生信高手
 # Linux操作基础
+```
 orkj3401772k2ei3
 0heyuanyu@
 
@@ -353,7 +354,7 @@ Collecting package metadata (repodata.json): | ERROR conda.auxlib.logz:stringify
 Traceback (most recent call last):
   File "/home/hekun/miniconda3/lib/python3.11/site-packages/requests/models.py", line 971, in json
     return complexjson.loads(self.text, **kwargs)
-
+```
 # 软件安装
 ```
 #转录组比对和定量 {#}

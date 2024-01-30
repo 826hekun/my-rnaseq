@@ -355,7 +355,7 @@ Traceback (most recent call last):
     return complexjson.loads(self.text, **kwargs)   
 
 # 软件安装   
-   
+```
 #转录组比对和定量 {#}   
 mkdir -p ~/transcriptome/soft   
 cd ~/transcriptome/soft   
@@ -586,9 +586,9 @@ GTF=$refdir/Taestivum.58.gtf   #这个gtf文件是由gff3文件通过脚本index
 GENE_BED=$refdir/gene.bed   
 GENE_LENGTH=$refdir/gene_length.txt   
 
-
+```
 # 质控
-
+```
 ## 一：fastqc   
 #对原始数据进行fastqc质控  
 #fastqc质控报告查看介绍：https://www.omicsclass.com/article/1231  
@@ -597,8 +597,10 @@ mkdir 1.fastqc
 fastqc $datadir/*.gz  -o $workdir/1.fastqc  
 echo "fastqc $datadir/*.gz  -o $workdir/1.fastqc" #用于查看命令的全称    
      
-#对所有的.gz文件进行质控，并将结果输出到指定的目录，-o 是指一个参数，用于指定FastQC生成的报告文件的储存路径。这样，你就可以在目录下查看fastqc生成的报告文件，它们的后缀是.html或.zip。你可以用浏览器打开.html文件，查看每个样本的质量评估结果。   
+#对所有的.gz文件进行质控，并将结果输出到指定的目录，-o 是指一个参数，用于指定FastQC生成的报告文件的储存路径。这样，你就可以在目录下查看fastqc生成的报告文件，它们的后缀是.html或.zip。你可以用浏览器打开.html文件，查看每个样本的质量评估结果。
+```   
 ## 二：批量评估multiqc   
+```
 #对fastqc结果整合与汇总
 multiqc  $workdir/1.fastqc -o $workdir/1.fastqc/multiqc  
 echo "multiqc  $workdir/1.fastqc -o $workdir/1.fastqc/multiqc" #用于查看命令的全称
@@ -609,7 +611,8 @@ multiqc 是运行MultiQC的命令
 
 查看结果   
 
-推荐：使用MobaXterm软件登陆服务器 
+推荐：使用MobaXterm软件登陆服务器
+```
 ## 三：使用fastp去除低质量的reads和adaptor   
 
 ```
@@ -696,12 +699,14 @@ fastp --thread 1 --qualified_quality_phred 10 \
 -h ${samp}.html -j ${samp}.json  
   
 done  
-```
+
 
   
 #质控数据统计汇总：  
-python $scriptdir/qc_stat.py -d $workdir/2.data_qc/ -o $workdir/2.data_qc/ -p all_sample_qc  
+python $scriptdir/qc_stat.py -d $workdir/2.data_qc/ -o $workdir/2.data_qc/ -p all_sample_qc
+```
 ## 四：使用trim-galore去除低质量的reads和adaptor（与第三步骤选一个即可）   
+```
 使用trim-galore去除低质量的reads和adaptor   
 创建脚本：trim_galorez_多样本qc   
 #!/bin/bash   
@@ -715,7 +720,7 @@ done
 运行脚本bash trim-galore去除低质量的reads和adaptor   
 ![image](https://github.com/826hekun/my-rnaseq/assets/157109892/229fcea3-49dd-4cae-b3e2-c76971592459)   
 ![image](https://github.com/826hekun/my-rnaseq/assets/157109892/47c9bbd4-d96b-4782-85c3-4f78043ab951)   
-
+```
 
 
 # salmon定量

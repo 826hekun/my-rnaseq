@@ -612,14 +612,9 @@ multiqc 是运行MultiQC的命令
 推荐：使用MobaXterm软件登陆服务器 
 ## 三：使用fastp去除低质量的reads和adaptor   
 
-#数据质控：对原始序列进行去接头，删除低质量的reads等等  
-  
-
-  
-####  
-  
+```
 cd $workdir #回到工作目录  
-  
+ 
 mkdir 2.data_qc  
   
 cd  2.data_qc  
@@ -632,9 +627,9 @@ cd  2.data_qc
   
 #--adapter_fasta    # 指定包含接头序列的fasta文件  
   
-                   # 接头序列至少6bp长度，否则将被跳过  
+# 接头序列至少6bp长度，否则将被跳过  
   
-                   # 可以指定任何想去除的序列，比如polyA   
+# 可以指定任何想去除的序列，比如polyA   
   
 #对于每一个样本，执行以下操作  文件名如下格式 normal rep3_r2. fastq. gz ，tumor repl_rl. fastq. gz，tumor repl r2. fastq. gz  
   
@@ -701,7 +696,7 @@ fastp --thread 1 --qualified_quality_phred 10 \
 -h ${samp}.html -j ${samp}.json  
   
 done  
-  
+```
 
   
 #质控数据统计汇总：  

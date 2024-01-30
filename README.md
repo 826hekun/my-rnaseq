@@ -396,6 +396,7 @@ conda install -y -q  RSEM&
 conda install -y -q stringtie &   
 conda install -y -q sra-tools &   
 conda install -y -q  trimmomatic &   
+conda install -y -q fastp  &   
 #下载之后，放入环境变量即可使用   
    
 cd ~/transcriptome/soft   
@@ -539,32 +540,113 @@ ln -s `pwd`/FastQC/fastqc ~/transcriptome/soft/
 ##sashimiplot绘制   
 #pip install -i https://pypi.tuna.tsinghua.edu.cn/simple rmats2sashimiplot   
 
+# 数据下载并构建索引
+####################################################   
+#准备一些路径变量，方便后续调用   
+####################################################   
+   
+workdir=/u3/hekun/rnaseq  #设置工作路径   
+refdir=$workdir/ref    
+datadir=$workdir/data   
+scriptdir=$workdir/scripts   
+###################################################################   
+# 下载参考基因组数据,并对基因组构建HISAT index   
+###################################################################   
+cd $workdir/  ###回到工作目录   
+cd $refdir  #进入参考基因组ref目录   
+   
+#hisat2 提供常见物种基因组索引文件：   
+#下载参考基因组数据到ref文件夹   
+wget https://ftp.ebi.ac.uk/ensemblgenomes/pub/release-58/plants/gtf/triticum_aestivum/Triticum_aestivum.IWGSC.58.gtf.gz   
+wget https://ftp.ebi.ac.uk/ensemblgenomes/pub/release-58/plants/gff3/triticum_aestivum/Triticum_aestivum.IWGSC.58.gff3.gz   
+wget https://ftp.ebi.ac.uk/ensemblgenomes/pub/release-58/plants/fasta/triticum_aestivum/cdna/Triticum_aestivum.IWGSC.cdna.all.fa   
+wget https://ftp.ebi.ac.uk/ensemblgenomes/pub/release-58/plants/fasta/triticum_aestivum/dna/Triticum_aestivum.IWGSC.dna.toplevel.fa.gz   
+   
+#gff3文件修改，因为ensemble上下载的注释上会有gene：transcript:，后续作分析带着很麻烦，所以提前处理（先提前查看文件看看有没有）   
+gunzip *.gz   
+sed 's#gene:##' Taestivum.58.gff3|sed 's#transcript:##'|less -SN   
+sed 's#gene:##' Taestivum.58.gff3|sed 's#transcript:##' >Taestivum.58.gff3.1 #取个名字   
+mv Taestivum.58.gff3.1 Taestivum.58.gff3 #重命名，覆盖原文件   
+   
+#wget -c ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz   
+#wget -c ftp://ftp.ensembl.org/pub/release-99/gff3/homo_sapiens/Homo_sapiens.GRCh38.99.chromosome.22.gff3.gz   
+#gunzip *gz   
+   
+#建立索引 常见物种索引下载： http://daehwankimlab.github.io/hisat2/download/   
+# hisat2 建立索引非常耗内存，如果建立索引失败 被 killed   
+sh $scriptdir/index.sh Homo_sapiens.GRCh38.dna.chromosome.22.fa Homo_sapiens.GRCh38.99.chromosome.22.gff3   
+   
+#设置参考基因组相关文件变量，方便后续使用   
+   
+REF_INDEX=$refdir/Taestivum.dna.toplevel   #hisat2 索引，没有.fa   
+GFF=$refdir/Taestivum.58.gff3   
+GTF=$refdir/Taestivum.58.gtf   #这个gtf文件是由gff3文件通过脚本index.sh生成的，不是下载的。   
+GENE_BED=$refdir/gene.bed   
+GENE_LENGTH=$refdir/gene_length.txt   
+
 
 # 质控
+
 ## 一：fastqc   
-cd /u3/2023.test/rawdata    
-#切换到数据所在的目录    
-fastqc *.fq.gz -o /home/hekun/salmon_work    
-#对所有的fq.gz文件进行质控，并将结果输出到指定的目录，-o 是指一个参数，用于指定FastQC生成的报告文件的储存路径。这样，你就可以在/home/hekun/salmon_work目录下查看fastqc生成的报告文件，它们的后缀是.html或.zip。你可以用浏览器打开.html文件，查看每个样本的质量评估结果。   
+#对原始数据进行fastqc质控  
+#fastqc质控报告查看介绍：https://www.omicsclass.com/article/1231  
+cd $workdir  #回到工作目录  
+mkdir 1.fastqc  
+fastqc $datadir/*.gz  -o $workdir/1.fastqc  
+echo "fastqc $datadir/*.gz  -o $workdir/1.fastqc" #用于查看命令的全称    
+     
+#对所有的.gz文件进行质控，并将结果输出到指定的目录，-o 是指一个参数，用于指定FastQC生成的报告文件的储存路径。这样，你就可以在目录下查看fastqc生成的报告文件，它们的后缀是.html或.zip。你可以用浏览器打开.html文件，查看每个样本的质量评估结果。   
 ## 二：批量评估multiqc   
-multiqc -d /home/hekun/salmon_work -o 输出报告的目录   
+#对fastqc结果整合与汇总
+multiqc  $workdir/1.fastqc -o $workdir/1.fastqc/multiqc  
+echo "multiqc  $workdir/1.fastqc -o $workdir/1.fastqc/multiqc" #用于查看命令的全称
 multiqc 是运行MultiQC的命令   
 -d 是指定要分析的目录，后面跟着目录的路径，这里是表示当前目录   
 -o 是指定输出报告的目录，后面跟着目录的路径，这里是 multiqc 表示在当前目录下创建一个名为multiqc的文件夹   
-这段代码的作用是在当前目录下搜索所有支持的生物信息学工具的输出文件，并将分析结果输出到multiqc文件夹中   
-## 三：查看结果   
-推荐：使用MobaXterm软件登陆服务器   
-不推荐：通过ssh远程访问Unix/Linux服务器上的html文件   
-- 【前置步骤】：在服务器上把网页挂载到特定的端口   
-- 【本机操作】：通过ssh -L选项连接，关联本地端口到对应的远程端口   
-- 【顺利完成】：在浏览器通过localhost:8000/xxx.html直接访问   
-具体的操作步骤如下：   
-   
-1. 打开本地电脑的终端或命令行窗口，输入`ssh username@server`（ssh hekun@192.168.70.175 -p 22），其中`username`是您在远程服务器上的用户名，`server`是远程服务器的IP地址或域名。按回车键，输入密码，登录到远程服务器。   
-2. 在远程服务器上，使用`cd`命令进入存放html文件的文件夹，例如`cd /home/username/html`。   
-3. 在远程服务器上，使用`python3 -m http.server 8000`命令启动一个简单的HTTP服务器，将当前文件夹下的所有文件挂载到8000端口。如果您想使用其他端口，可以修改命令中的数字。注意不要关闭这个终端或命令行窗口。   
-4. 打开本地电脑的另一个终端或命令行窗口，输入`ssh -L 8000:localhost:8000 hekun@192.168.70.175`，其中`username`和`server`与第一步相同。按回车键，输入密码，建立一个ssh隧道连接，将本地电脑的8000端口映射到远程服务器的8000端口。   
-5. 打开本地电脑的浏览器，在地址栏输入`localhost:8000/xxx.html`，其中`xxx.html`是想查看的html文件的名称。按回车键，就可以在浏览器中看到远程服务器上的html文件了。   
+这段代码的作用是在当前目录下搜索所有支持的生物信息学工具的输出文件，并将分析结果输出到multiqc文件夹中  
+
+查看结果   
+
+推荐：使用MobaXterm软件登陆服务器 
+## 三：使用fastp去除低质量的reads和adaptor   
+############################################################################  
+# 数据质控：对原始序列进行去接头，删除低质量的reads等等  
+############################################################################  
+cd $workdir  #回到工作目录  
+mkdir 2.data_qc  
+cd  2.data_qc  
+#利用fastp工具去除adapter  
+#--qualified_quality_phred the quality value that a base is qualified.   
+# Default 15 means phred quality >=Q15 is qualified. (int [=15])  
+#--unqualified_percent_limit how many percents of bases are allowed to be unqualified  
+#--n_base_limit if one read's number of N base is >n_base_limit,   
+# then this read/pair is discarded   
+#--detect_adapter_for_pe   接头序列未知  可设置软件自动识别常见接头  
+  
+for i in normal_rep1 normal_rep2 normal_rep3 tumor_rep1 tumor_rep2 tumor_rep3; do   
+echo "RUN CMD: fastp --thread 1 --qualified_quality_phred 10 \  
+--unqualified_percent_limit 50 \  
+--n_base_limit 10 \  
+-i $datadir/${i}_r1.fastq.gz \  
+-I $datadir/${i}_r2.fastq.gz \  
+-o ${i}_1.clean.fq.gz \  
+-O ${i}_2.clean.fq.gz \  
+--adapter_fasta $workdir/data/illumina_multiplex.fa \  
+-h ${i}.html -j ${i}.json"  
+  
+fastp --thread 1 --qualified_quality_phred 10 \  
+--unqualified_percent_limit 50 \  
+--n_base_limit 10 \  
+-i $datadir/${i}_r1.fastq.gz \  
+-I $datadir/${i}_r2.fastq.gz \  
+-o ${i}_1.clean.fq.gz \  
+-O ${i}_2.clean.fq.gz \  
+--adapter_fasta $workdir/data/illumina_multiplex.fa \  
+-h ${i}.html -j ${i}.json  
+done  
+  
+#质控数据统计汇总：  
+python $scriptdir/qc_stat.py -d $workdir/2.data_qc/ -o $workdir/2.data_qc/ -p all_sample_qc  
 ## 四：使用trim-galore去除低质量的reads和adaptor   
 若第三步不合格，使用trim-galore去除低质量的reads和adaptor   
 创建脚本：trim_galorez_多样本qc   

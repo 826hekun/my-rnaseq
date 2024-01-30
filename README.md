@@ -613,44 +613,101 @@ multiqc 是运行MultiQC的命令
 ## 三：使用fastp去除低质量的reads和adaptor   
 
 #数据质控：对原始序列进行去接头，删除低质量的reads等等  
-
-cd $workdir  #回到工作目录  
-mkdir 2.data_qc  
-cd  2.data_qc  
-#利用fastp工具去除adapter  
-#--qualified_quality_phred the quality value that a base is qualified.   
-#Default 15 means phred quality >=Q15 is qualified. (int [=15])  
-#--unqualified_percent_limit how many percents of bases are allowed to be unqualified  
-#--n_base_limit if one read's number of N base is >n_base_limit,   
-#then this read/pair is discarded   
-#--detect_adapter_for_pe   接头序列未知  可设置软件自动识别常见接头  
   
-for i in normal_rep1 normal_rep2 normal_rep3 tumor_rep1 tumor_rep2 tumor_rep3; do   
-echo "RUN CMD: fastp --thread 1 --qualified_quality_phred 10 \  
---unqualified_percent_limit 50 \  
---n_base_limit 10 \  
--i $datadir/${i}_r1.fastq.gz \  
--I $datadir/${i}_r2.fastq.gz \  
--o ${i}_1.clean.fq.gz \  
--O ${i}_2.clean.fq.gz \  
---adapter_fasta $workdir/data/illumina_multiplex.fa \  
--h ${i}.html -j ${i}.json"  
+
+  
+####  
+  
+cd $workdir #回到工作目录  
+  
+mkdir 2.data_qc  
+  
+cd  2.data_qc  
+  
+#利用fastp工具去除adapter   
+  
+#--detect_adapter_for_pe  默认对双端数据则默认不使用自动检测adapter(SE可自动检测)，设置该参数，表示对双端数据也启用自动检测方法；接头序列未知  可设置软件自动识别常见接头   
+  
+#--detect_adapter_for_pe    # 开启双端的接头检测(应该不同于overlap方法)  
+  
+#--adapter_fasta    # 指定包含接头序列的fasta文件  
+  
+                   # 接头序列至少6bp长度，否则将被跳过  
+  
+                   # 可以指定任何想去除的序列，比如polyA   
+  
+#对于每一个样本，执行以下操作  文件名如下格式 normal rep3_r2. fastq. gz ，tumor repl_rl. fastq. gz，tumor repl r2. fastq. gz  
+  
+
+  
+#使用for关键字开始一个循环，i是一个变量，用于存储每次循环中的当前文件名    
+  
+#in后面跟着一个通配符表达式，表示要遍历的文件集合   
+  
+#这里的通配符*表示任意长度的任意字符，_1.clean.fq.gz表示以这个字符串结尾  
+  
+#所以，这个表达式匹配了data目录下的所有以_1.clean.fq.gz结尾的文件  
+  
+#例如，ANTF1_FRAS202191140-1r_1.clean.fq.gz，ANTF2_FRAS202191140-1r_1.clean.fq.gz等  
+  
+#分号表示一条命令的结束  
+  
+for i in /u3/hekun/rnaseq/data/*_1.clean.fq.gz;   
+  
+do # do表示循环体的开始，每次循环都会执行循环体中的命令  
+  
+#使用反引号将basename命令包围，表示执行这个命令并将结果赋值给samp变量  
+  
+#basename命令用于获取文件的基本名称，即去掉目录和后缀的部分  
+  
+#basename命令接受两个参数，第一个是文件的完整路径，第二个是要去掉的后缀  
+  
+#这里，第一个参数是i变量，表示当前循环的文件名，第二个参数是_1.clean.fq.gz，表示要去掉的后缀  
+  
+#例如，如果i的值是/u3/hekun/rnaseq/data/ANTF1_FRAS202191140-1r_1.clean.fq.gz，那么basename命令的结果就是ANTF1_FRAS202191140-1r  
+  
+samp=`basename ${i} _1.clean.fq.gz`   
+  
+#使用echo命令打印出一条信息，表示正在处理哪个样本  
+  
+#使用双引号将字符串包围，表示字符串中的变量会被替换为实际的值  
+  
+#使用美元符号和花括号将变量名包围，表示引用变量的值  
+  
+#例如，如果samp的值是ANTF1_FRAS202191140-1r，那么echo命令会打印出Processing sample ANTF1_FRAS202191140-1r  
+  
+echo "Processing sample ${samp}"   
+  
+ 
   
 fastp --thread 1 --qualified_quality_phred 10 \  
+  
 --unqualified_percent_limit 50 \  
+  
 --n_base_limit 10 \  
--i $datadir/${i}_r1.fastq.gz \  
--I $datadir/${i}_r2.fastq.gz \  
--o ${i}_1.clean.fq.gz \  
--O ${i}_2.clean.fq.gz \  
---adapter_fasta $workdir/data/illumina_multiplex.fa \  
--h ${i}.html -j ${i}.json  
+  
+-i $datadir/${samp}_1.clean.fq.gz \  
+  
+-I $datadir/${samp}_2.clean.fq.gz \  
+  
+-o ${samp}_1.clean.fastp.fq.gz \  
+  
+-O ${samp}_2.clean.fastp.fq.gz \  
+  
+#--adapter_fasta $workdir/data/illumina_multiplex.fa \  
+  
+--detect_adapter_for_pe  
+  
+-h ${samp}.html -j ${samp}.json  
+  
 done  
+  
+
   
 #质控数据统计汇总：  
 python $scriptdir/qc_stat.py -d $workdir/2.data_qc/ -o $workdir/2.data_qc/ -p all_sample_qc  
-## 四：使用trim-galore去除低质量的reads和adaptor   
-若第三步不合格，使用trim-galore去除低质量的reads和adaptor   
+## 四：使用trim-galore去除低质量的reads和adaptor（与第三步骤选一个即可）   
+使用trim-galore去除低质量的reads和adaptor   
 创建脚本：trim_galorez_多样本qc   
 #!/bin/bash   
 for fn in /u3/2023.test/rawdata/*_1.fq.gz; # 这是一个for循环，用于遍历rawdata目录下的所有以_1.fq.gz结尾的文件，例如N10_1.fq.gz   

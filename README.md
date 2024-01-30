@@ -718,11 +718,11 @@ samp=`basename ${fn} _1.fq.gz` #这是一个变量赋值，用于获取文件的
 echo "Processing sample ${samp}" #这是一个输出语句，用于打印正在处理的样本名称
 trim_galore -q 20 --phred33 --stringency 4 --length 25 -e 0.1 --clip_R1 9 --clip_R2 9 --fastqc --paired /u3/2023.test/rawdata/${samp}_1.fq.gz /u3/2023.test/rawdata/${samp}_2.fq.gz --gzip -o /home/hekun/cleandata/trim_galoredata
 done
-
+```
 运行脚本bash trim-galore去除低质量的reads和adaptor
 ![image](https://github.com/826hekun/my-rnaseq/assets/157109892/229fcea3-49dd-4cae-b3e2-c76971592459)
 ![image](https://github.com/826hekun/my-rnaseq/assets/157109892/47c9bbd4-d96b-4782-85c3-4f78043ab951)
-```
+
 
 
 # salmon定量

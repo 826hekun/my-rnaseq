@@ -550,7 +550,7 @@ refdir=$workdir/ref
 datadir=$workdir/data   
 scriptdir=$workdir/scripts   
 ###################################################################   
-# 下载参考基因组数据,并对基因组构建HISAT index   
+#下载参考基因组数据,并对基因组构建HISAT index   
 ###################################################################   
 cd $workdir/  ###回到工作目录   
 cd $refdir  #进入参考基因组ref目录   
@@ -572,8 +572,10 @@ mv Taestivum.58.gff3.1 Taestivum.58.gff3 #重命名，覆盖原文件
 #wget -c ftp://ftp.ensembl.org/pub/release-99/gff3/homo_sapiens/Homo_sapiens.GRCh38.99.chromosome.22.gff3.gz   
 #gunzip *gz   
    
-#建立索引 常见物种索引下载： http://daehwankimlab.github.io/hisat2/download/   
-# hisat2 建立索引非常耗内存，如果建立索引失败 被 killed   
+#建立索引 常见物种索引下载： http://daehwankimlab.github.io/hisat2/download/
+
+#hisat2 建立索引非常耗内存，如果建立索引失败 被 killed   
+
 sh $scriptdir/index.sh Homo_sapiens.GRCh38.dna.chromosome.22.fa Homo_sapiens.GRCh38.99.chromosome.22.gff3   
    
 #设置参考基因组相关文件变量，方便后续使用   
@@ -609,18 +611,18 @@ multiqc 是运行MultiQC的命令
 
 推荐：使用MobaXterm软件登陆服务器 
 ## 三：使用fastp去除低质量的reads和adaptor   
-############################################################################  
-# 数据质控：对原始序列进行去接头，删除低质量的reads等等  
-############################################################################  
+
+#数据质控：对原始序列进行去接头，删除低质量的reads等等  
+
 cd $workdir  #回到工作目录  
 mkdir 2.data_qc  
 cd  2.data_qc  
 #利用fastp工具去除adapter  
 #--qualified_quality_phred the quality value that a base is qualified.   
-# Default 15 means phred quality >=Q15 is qualified. (int [=15])  
+#Default 15 means phred quality >=Q15 is qualified. (int [=15])  
 #--unqualified_percent_limit how many percents of bases are allowed to be unqualified  
 #--n_base_limit if one read's number of N base is >n_base_limit,   
-# then this read/pair is discarded   
+#then this read/pair is discarded   
 #--detect_adapter_for_pe   接头序列未知  可设置软件自动识别常见接头  
   
 for i in normal_rep1 normal_rep2 normal_rep3 tumor_rep1 tumor_rep2 tumor_rep3; do   

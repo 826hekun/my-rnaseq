@@ -589,8 +589,9 @@ GENE_LENGTH=$refdir/gene_length.txt
 
 ```
 # 质控
-```
+
 ## 一：fastqc
+```
 #对原始数据进行fastqc质控
 #fastqc质控报告查看介绍：https://www.omicsclass.com/article/1231
 cd $workdir  #回到工作目录

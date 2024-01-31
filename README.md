@@ -652,9 +652,9 @@ cd  2.data_qc
 
 #分号表示一条命令的结束
 
-for i in /u3/hekun/rnaseq/data/*_1.clean.fq.gz;
+#for i in /u3/hekun/rnaseq/data/*_1.clean.fq.gz;
 
-do # do表示循环体的开始，每次循环都会执行循环体中的命令
+#do # do表示循环体的开始，每次循环都会执行循环体中的命令
 
 #使用反引号将basename命令包围，表示执行这个命令并将结果赋值给samp变量
 
@@ -666,7 +666,7 @@ do # do表示循环体的开始，每次循环都会执行循环体中的命令
 
 #例如，如果i的值是/u3/hekun/rnaseq/data/ANTF1_FRAS202191140-1r_1.clean.fq.gz，那么basename命令的结果就是ANTF1_FRAS202191140-1r
 
-samp=`basename ${i} _1.clean.fq.gz`
+#samp=`basename ${i} _1.clean.fq.gz`
 
 #使用echo命令打印出一条信息，表示正在处理哪个样本
 
@@ -675,34 +675,40 @@ samp=`basename ${i} _1.clean.fq.gz`
 #使用美元符号和花括号将变量名包围，表示引用变量的值
 
 #例如，如果samp的值是ANTF1_FRAS202191140-1r，那么echo命令会打印出Processing sample ANTF1_FRAS202191140-1r
+#echo "Processing sample ${samp}"
+#fastp --thread 1 --qualified_quality_phred 10 \
+#--unqualified_percent_limit 50 \
+#--n_base_limit 10 \
+#-i $datadir/${samp}_1.clean.fq.gz \
+#-I $datadir/${samp}_2.clean.fq.gz \
+#-o ${samp}_1.clean.fastp.fq.gz \
+#-O ${samp}_2.clean.fastp.fq.gz \
+#--adapter_fasta $workdir/data/illumina_multiplex.fa \
+#--detect_adapter_for_pe
+#-h ${samp}.html -j ${samp}.json
+#done
+
+$\color{red} {
+for i in /u3/hekun/rnaseq/data/*_1.clean.fq.gz;
+do 
+samp=`basename ${i} _1.clean.fq.gz`
 
 echo "Processing sample ${samp}"
-
-
-
+ 
 fastp --thread 1 --qualified_quality_phred 10 \
-
 --unqualified_percent_limit 50 \
-
 --n_base_limit 10 \
-
 -i $datadir/${samp}_1.clean.fq.gz \
-
 -I $datadir/${samp}_2.clean.fq.gz \
-
 -o ${samp}_1.clean.fastp.fq.gz \
-
 -O ${samp}_2.clean.fastp.fq.gz \
-
 #--adapter_fasta $workdir/data/illumina_multiplex.fa \
-
---detect_adapter_for_pe
-
--h ${samp}.html -j ${samp}.json
-
+--detect_adapter_for_pe \
+-h ${samp}.html \
+-j ${samp}.json
 done
 
-
+} $
 
 #质控数据统计汇总：
 python $scriptdir/qc_stat.py -d $workdir/2.data_qc/ -o $workdir/2.data_qc/ -p all_sample_qc

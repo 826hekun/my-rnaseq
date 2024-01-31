@@ -2,10 +2,10 @@
 争取早日成为生信高手
 # Linux操作基础
 ```
-orkj3401772k2ei3
-0heyuanyu@
-<font color= #871F78>我是紫色</font>
-home光标回到开头
+**orkj3401772k2ei3
+0heyuanyu@**
+
+**home光标回到开头**
 clear清屏
 
 ls列出目录内容

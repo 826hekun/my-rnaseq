@@ -688,7 +688,8 @@ cd  2.data_qc
 #-h ${samp}.html -j ${samp}.json
 #done
 
-$\color{red} {for i in /u3/hekun/rnaseq/data/*_1.clean.fq.gz;
+$\color{red} {代码如下} $
+for i in /u3/hekun/rnaseq/data/*_1.clean.fq.gz;
 do 
 samp=`basename ${i} _1.clean.fq.gz`
 
@@ -705,7 +706,8 @@ fastp --thread 1 --qualified_quality_phred 10 \
 --detect_adapter_for_pe \
 -h ${samp}.html \
 -j ${samp}.json
-done} $
+done
+
 
 #质控数据统计汇总：
 python $scriptdir/qc_stat.py -d $workdir/2.data_qc/ -o $workdir/2.data_qc/ -p all_sample_qc

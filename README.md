@@ -2,10 +2,10 @@
 争取早日成为生信高手
 # Linux操作基础
 ```
-**orkj3401772k2ei3
-0heyuanyu@**
+orkj3401772k2ei3
+0heyuanyu@
 
-**home光标回到开头**
+**home光标回到开头
 clear清屏
 
 ls列出目录内容
@@ -638,8 +638,6 @@ cd  2.data_qc
 
 #对于每一个样本，执行以下操作  文件名如下格式 normal rep3_r2. fastq. gz ，tumor repl_rl. fastq. gz，tumor repl r2. fastq. gz
 
-
-
 #使用for关键字开始一个循环，i是一个变量，用于存储每次循环中的当前文件名
 
 #in后面跟着一个通配符表达式，表示要遍历的文件集合
@@ -688,7 +686,7 @@ cd  2.data_qc
 #-h ${samp}.html -j ${samp}.json
 #done
 
-<font color= #871F78>代码如下</font>
+
 for i in /u3/hekun/rnaseq/data/*_1.clean.fq.gz;
 do 
 samp=`basename ${i} _1.clean.fq.gz`

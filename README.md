@@ -398,7 +398,13 @@ conda install -y -q stringtie &
 conda install -y -q sra-tools &
 conda install -y -q  trimmomatic &
 conda install -y -q fastp  &
-conda install bioconda::rseqc  &
+conda install bioconda::rseqc  &如果这个方法失败则使用下列的方法
+#激活conda环境
+conda activate 
+#安装RsEQC软件
+pip3 install RSeQC -i  http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+#查看是否有resqc软件
+(base) [user]$ conda list#其中如果有了就是成功了，which resqc是搜索不到的，这个软件直接用里面的质量，比如read_distribution.py -h
 
 #下载之后，放入环境变量即可使用
 

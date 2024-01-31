@@ -398,6 +398,8 @@ conda install -y -q stringtie &
 conda install -y -q sra-tools &
 conda install -y -q  trimmomatic &
 conda install -y -q fastp  &
+conda install bioconda::rseqc  &
+
 #下载之后，放入环境变量即可使用
 
 cd ~/transcriptome/soft

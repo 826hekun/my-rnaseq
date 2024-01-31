@@ -688,7 +688,7 @@ cd  2.data_qc
 #-h ${samp}.html -j ${samp}.json
 #done
 
-$\color{red} {代码如下} $
+<font color= #871F78>代码如下</font>
 for i in /u3/hekun/rnaseq/data/*_1.clean.fq.gz;
 do 
 samp=`basename ${i} _1.clean.fq.gz`

@@ -4,7 +4,7 @@
 ```
 orkj3401772k2ei3
 0heyuanyu@
-
+<font color= #871F78>我是紫色</font>
 home光标回到开头
 clear清屏
 

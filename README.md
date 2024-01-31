@@ -700,7 +700,6 @@ fastp --thread 1 --qualified_quality_phred 10 \
 -I $datadir/${samp}_2.clean.fq.gz \
 -o ${samp}_1.clean.fastp.fq.gz \
 -O ${samp}_2.clean.fastp.fq.gz \
-#--adapter_fasta $workdir/data/illumina_multiplex.fa \
 --detect_adapter_for_pe \
 -h ${samp}.html \
 -j ${samp}.json

@@ -739,6 +739,7 @@ done
 
 
 # salmon定量
+```
 要删除data文件夹下的所有子文件夹，只保留子文件夹中的文件
 可以使用find命令来查找data文件夹下的所有子文件夹，然后使用mv命令将子文件夹中的文件移动到data文件夹，最后使用rm命令删除空的子文件夹。具体的步骤如下：
 打开终端，进入到data文件夹所在的目录。
@@ -750,3 +751,431 @@ while read line; do mv "$line"/* data; rmdir "$line"; done < tmp.txt
 rm tmp.txt
 这样，你就可以实现你想要的效果，data文件夹下只剩下文件，没有子文件夹了。
 注意：在执行上述命令之前，建议你先备份你的数据，以防万一出现意外。另外，如果你的文件名中包含空格或特殊字符，你可能需要对文件名进行转义或引用，以避免错误。
+```
+
+```
+# Salmon定量 {#salmon}
+
+
+cd /u3/hekun/rnaseq/2.cleandata
+
+ls -sh *
+
+
+### 4.0K compare_pair          25M trt_N080611_1.fq.gz     16M untrt_N061011_1.fq.gz
+### 4.0K sampleFile            25M trt_N080611_2.fq.gz     16M untrt_N061011_2.fq.gz
+###  13M trt_N052611_1.fq.gz   14M trt_N61311_1.fq.gz      19M untrt_N080611_1.fq.gz
+###  13M trt_N052611_2.fq.gz   14M trt_N61311_2.fq.gz      19M untrt_N080611_2.fq.gz
+###  18M trt_N061011_1.fq.gz   19M untrt_N052611_1.fq.gz   15M untrt_N61311_1.fq.gz
+###  18M trt_N061011_2.fq.gz   19M untrt_N052611_2.fq.gz   15M untrt_N61311_2.fq.gz
+### 
+### genome:
+### 总用量 87M
+###  62M GRCh38.fa   24M GRCh38.gtf  1.7M GRCh38.idmap
+
+
+## 测序文件下载
+
+# 使用NCBI提供的SRA-toolkit中的工具`fastq-dump`直接下载SRR文件，并转换为`FASTQ`格式，`--split-3`参数表示如果是双端测序就自动拆分，如果是单端不受影响。
+
+# SRA toolkit <https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software>, 根据服务器操作系统类型下载对应的二进制编码包，下载解压放到环境变量即可使用。
+
+# CentOS下地址：<https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.9.0/sratoolkit.2.9.0-centos_linux64.tar.gz>。
+
+# 如果需要下载测序数据，则取消下面语句前的#
+# 如果是在线学习，请取消下面的注释，自行下载
+#cd ~/transcriptome/data
+#fastq-dump -v --split-3 --gzip SRR1039508
+#rename "SRR1039508"  "untrt_N61311"  SRR1039508*
+#fastq-dump -v --split-3 --gzip SRR1039509
+#rename "SRR1039509"  "trt_N61311"  SRR1039509*
+#fastq-dump -v --split-3 --gzip SRR1039512
+#rename "SRR1039512"  "untrt_N052611"  SRR1039512*
+#fastq-dump -v --split-3 --gzip SRR1039513
+#rename "SRR1039513"  "trt_N052611"  SRR1039513*
+#fastq-dump -v --split-3 --gzip SRR1039516
+#rename "SRR1039516"  "untrt_N080611"  SRR1039516*
+#fastq-dump -v --split-3 --gzip SRR1039517
+#rename "SRR1039517"  "trt_N080611"  SRR1039517*
+#fastq-dump -v --split-3 --gzip SRR1039520
+#rename "SRR1039520"  "untrt_N061011"  SRR1039520*
+#fastq-dump -v --split-3 --gzip SRR1039521
+#rename "SRR1039521"  "trt_N061011"  SRR1039521*
+#rename "fastq" "fq" *.gz
+#/bin/rm ~/ncbi/public/sra/*.sra
+
+## 测序文件查看和测序量评估
+
+# 进入data目录
+cd /u3/hekun/rnaseq/2.cleandata
+
+# 查看文件，压缩或未压缩的都可以，尤其适合查看极大文件
+# 在Rstudio界面不可用, 可以查看，但不能退出
+#less trt_N061011_1.fq.gz
+
+# zcat查看gzip压缩的文件
+# head -n 8 显示前8行文件内容
+# 前8行是代表几条序列？
+# zcat trt_N061011_1.fq.gz | head -n 8
+
+# 测序reads数计算
+
+# wc -l: 计算行数
+# bc -l: 计算器 (-l：浮点运算)
+# 为什么除以4，又除以1000000？
+# echo "`zcat trt_N061011_1.fq.gz | wc -l` / (4*1000000)" | bc -l
+# .464329 million
+
+# 测序碱基数计算 (只包含20号染色体的数据) (awk的介绍见[常用和不太常用的awk命令](http://mp.weixin.qq.com/s/8wD14FXt7fLDo1BjJyT0ew))
+
+# awk运算
+# %取余数
+# zcat trt_N061011_1.fq.gz | awk '{if(FNR%4==0) base+=length}END{print base/10^9,"G";}'
+# 0.028816 G
+
+## 测序质量评估 (NGS基础 - FASTQ格式解释和质量评估: https://mp.weixin.qq.com/s/tDMih7ISLJcL4F4sWBq3Vw)
+
+fastqc trt_N061011_1.fq.gz
+# trt_N061011_1_fastqc.html 在Rstudio中打开 (View in Web browser)
+
+# 批量评估
+fastqc *.fq.gz
+
+# multiqc 整理评估结果
+multiqc -d . -o multiqc
+
+# 结果存储在multiqc/multiqc_report.html, 双击打开
+
+## 基因注释文件准备 gtf转bed12
+cd /u3/hekun/rnaseq/ref
+
+# assembl="GRCh38"
+# ucsc_assembl="hg38"
+
+# gtf2bed12.sh所做的操作就是下面两句话
+# gtfToGenePred -ignoreGroupsWithoutExons GRCh38.gtf GRCh38.gtf.50505050.pred
+# genePredToBed GRCh38.gtf.50505050.pred GRCh38.gtf.bed12
+# 删除临时文件
+# /bin/rm -f GRCh38.gtf.50505050.pred
+
+
+# gtf2bed12.sh -f GRCh38.gtf
+# 选择长度适中的转录本用于后续评估
+# awk '$3-$2>1000 && $3-$2<2000' GRCh38.gtf.bed12 >GRCh38.model.gtf.bed12
+# head GRCh38.gtf.bed12
+
+# # cp ../bak/GRCh38.chromsize .
+# 下载chrome size文件，第一列为染色体名字，第二列为染色体大小
+# 也可以自己写程序计算
+# 适用于任何基因组序列，先判断是不是读到的第一条染色体，如果不是就打印；如果是只存储
+# 记得输出最后一条染色体的长度信息
+# awk 'BEGIN{OFS="\t"}{if($0~/>/) {if(size>0) print chrname, size; size=0; chrname=$0; sub(">","", chrname);} else size+=length;}END{print chrname,size}' GRCh38.fa
+# mysql --user=genome --host=genome-mysql.cse.ucsc.edu -A -e "select chrom, size from hg38.chromInfo" | tail -n +2 >GRCh38.chromsize
+# head GRCh38.chromsize
+
+
+# 不基于比对的定量 (salmon)
+
+## 获取转录本序列, (如果物种有cDNA序列提供，直接下载，如果没有则用下面的程序，通过gtf和genome文件提取)
+
+# gffread生存的fasta文件同时包含基因名字和转录本名字
+gffread GRCh38.gtf -g GRCh38.fa -w GRCh38.transcript.fa.tmp
+# 去掉空格后面的字符串，保证cDNA文件中fasta序列的名字简洁，不然后续会出错
+cut -f 1 -d ' ' GRCh38.transcript.fa.tmp >GRCh38.transcript.fa
+head GRCh38.transcript.fa
+
+cd /u3/hekun/rnaseq/salmon
+## 构建Salmon索引
+
+# GRCh38.transcript.fa：待分析的cDNA文件，转录本序列fasta文件
+# GRCh38.salmon： salmon索引输出文件夹
+#这段是易生信的，但是太简单，下列未注释的代码是根据官网重新写的全面的构建索引和定量salmon index -t GRCh38.transcript.fa -i GRCh38.salmon
+#这里的cdna文件就是文档中说的转录组文件，这两条命令会将原文件压缩为.gz格式，并且删除原文件。如果您想保留原文件，您可以加上-k选项，例如：
+grep "^>" <(gunzip -c Taestivum.dna.toplevel.fa.gz) | cut -d " " -f 1 > /u3/hekun/rnaseq/salmon/decoys.txt
+sed -i.bak -e 's/>//g' /u3/hekun/rnaseq/salmon/decoys.txt
+cat Taestivum.cdna.fa.gz Taestivum.dna.toplevel.fa.gz > /u3/hekun/rnaseq/salmon/gentrome.fa.gz
+cd  /u3/hekun/rnaseq/salmon
+salmon index -t gentrome.fa.gz -i salmon_Taestivum_index --d decoys.txt -p 12 -k 31
+
+# 定量
+for fn in /u3/hekun/rnaseq/2.data_qc/*_1.clean.fastp.fq.gz;
+do 
+i=`basename ${fn} _1.clean.fastp.fq.gz`
+echo "Processing sample ${i}"
+
+salmon --no-version-check quant -i salmon_Taestivum_index -l A \
+         -1 /u3/hekun/rnaseq/2.data_qc/${i}_1.clean.fastp.fq.gz \
+         -2 /u3/hekun/rnaseq/2.data_qc/${i}_2.clean.fastp.fq.gz \
+         --gcBias --seqBias \
+         -p 20 --validateMappings -o quants/${i}_quant
+done &
+
+echo "
+Version Server Response: Not Found，这不会影响结果。这个问题只是和版本检查有关，和定量分析的算法和数据无关。如果不想要则加上--no-version-check
+# 三文鱼索引需要基因组目标的名称，可以使用以下grep命令提取该名称：
+
+grep "^>" <(gunzip -c Taestivum.dna.toplevel.fa.gz) | cut -d " " -f 1 > decoys.txt
+#grep是一种用于在文本中搜索匹配模式的命令
+#"^>"是一个正则表达式，表示以>符号开头的行
+#<(gunzip -c Taestivum.dna.toplevel.fa.gz)是一个进程替换，表示将gunzip命令的输出作为一个文件传递给grep
+#gunzip是一种用于解压缩.gz格式的文件的命令
+#-c选项表示将解压缩的内容输出到标准输出，而不是覆盖原文件
+#Taestivum.dna.toplevel.fa.gz是一个压缩的FASTA格式的文件，包含了小麦的基因组序列
+#|是一个管道符号，表示将前一个命令的输出作为后一个命令的输入
+#cut是一种用于按照分隔符切分文本的命令
+#-d " "选项表示以空格为分隔符
+#-f 1选项表示只保留第一个字段
+#> decoys.txt表示将cut命令的输出重定向到一个名为decoys.txt的文件中
+#decoys.txt文件中存储了基因组目标的名称，也就是鲑鱼索引中的诱饵,**经过重现官方文档步骤，其实就是染色体的名称**
+
+sed -i.bak -e 's/>//g' decoys.txt
+#sed是一种用于对文本进行编辑的命令
+#-i.bak选项表示对原文件进行修改，并且保存一个备份文件，后缀为.bak
+#-e选项表示执行一个编辑命令
+#'s/>//g'是一个替换命令，表示将每一行中的>符号替换为空，g表示全局替换
+#这一步的目的是去掉decoys.txt文件中每一行开头的>符号，使得诱饵的名称与鲑鱼索引中的一致
+
+#除了诱饵列表之外，鲑鱼还需要串联的转录组和基因组参考文件作为索引。注意：基因组目标（诱饵）应位于转录组目标之后
+#除了诱饵列表之外，鲑鱼还需要串联的转录组和基因组参考文件作为索引。注意：基因组目标（诱饵）应位于的转录组目标之后
+
+#这一段是说，鲑鱼索引中的目标文件是由两个文件合并而成的，一个是转录组文件，一个是基因组文件。转录组文件包含了所有的转录本序列，基因组文件包含了所有的染色体序列。
+#鲑鱼索引的原理是使用一种叫做轻量级比对（lightweight-alignment）的方法，来快速准确地从RNA-seq数据中估计转录本的丰度。这种方法的关键是利用一种叫做诱饵（decoy）的技术，来避免将RNA-seq读段错误地比对到基因组上，而不是转录组上。
+#诱饵就是指那些可能与转录本序列相似，但不属于转录本的基因组序列，它们通常是一些未注释的基因或转座子等。诱饵的作用是在比对过程中，将那些可能比对到多个位置的读段过滤掉，从而提高比对的准确性和转录本的丰度估计的可靠性。
+#为了使用诱饵技术，鲑鱼索引需要两个输入文件，一个是目标文件，一个是诱饵文件。目标文件就是包含了转录组和基因组的文件，诱饵文件就是包含了基因组目标（诱饵）的名称的文件。这两个文件的内容和格式可以参考这里。
+#在目标文件中，为了让鲑鱼索引能够正确地识别诱饵，需要将基因组目标放在转录组目标之后，也就是说，先写转录本的序列，再写染色体的序列。这样，鲑鱼索引就会优先比对转录本，然后再比对诱饵，从而过滤掉那些不确定的读段。
+
+cat Taestivum.cdna.fa.gz Taestivum.dna.toplevel.fa.gz > gentrome.fa.gz（其实就是cdna文件最后加让了染色体名称））
+#cat是一种用于连接文件内容的命令
+#Taestivum.cdna.fa.gz是一个压缩的FASTA格式的文件，包含了小麦的转录组序列
+#Taestivum.dna.toplevel.fa.gz是一个压缩的FASTA格式的文件，包含了小麦的基因组序列
+#> gentrome.fa.gz表示将cat命令的输出重定向到一个名为gentrome.fa.gz的文件中
+#gentrome.fa.gz文件中存储了串联的转录组和基因组参考文件，也就是鲑鱼索引中的目标
+
+#鲑鱼索引
+#我们已经准备好鲑鱼食谱的所有原料。我们可以按如下方式运行鲑鱼索引步骤：
+
+salmon index -t gentrome.fa.gz -d decoys.txt -p 12 -i salmon_Taestivum_index --gencode
+（gentrome.fa.gz等价于Taestivum.cdna.fa.gz。转录本文件即transcripts.fa）
+#salmon是一种用于转录组定量的工具，可以通过命令行运行
+#index是一个子命令，表示构建鲑鱼索引
+#-t gentrome.fa.gz选项表示指定目标文件，也就是串联的转录组和基因组参考文件
+#-d decoys.txt选项表示指定诱饵文件，也就是基因组目标的名称
+#-p 12选项表示指定使用的线程数，也就是并行运行的进程数
+#-i salmon_Taestivum_index选项表示指定索引的输出目录，也就是索引文件的存储位置
+#--gencode选项表示删除目标标头中|与 gencode 引用分隔的额外元数据，这是因为转录组参考文件是从gencode数据库下载的，如果使用其他参考，您可以跳过它
+
+#注意：--gencode标志用于删除目标标头中|与 gencode 引用分隔的额外元数据。如果使用其他参考，您可以跳过它。
+#–gencode选项表示删除目标标头中|与 gencode 引用分隔的额外元数据，这是因为转录组参考文件是从gencode数据库下载的，如果使用其他参考，您可以跳过它
+#这一段是说，鲑鱼索引中的目标文件是由转录组和基因组两部分组成的，而转录组文件是从一个叫做gencode的数据库下载的。gencode是一个项目，它的目标是识别和分类人类和小鼠基因组中的所有基因特征1。
+#gencode数据库提供的转录组文件中，每个转录本的标识符（ID）都是由一些元数据组成的，这些元数据包括转录本的类型、来源、版本等信息，它们之间用|符号分隔。例如，ENST00000456328.2|ENSG00000223972.5|OTTHUMG00000000961.2|OTTHUMT00000002844.2|DDX11L1-202|DDX11L1|1657|processed_transcript|2。
+#鲑鱼索引中只需要用到转录本的ID，而不需要这些额外的元数据，所以使用–gencode选项可以去掉|符号后面的部分，只保留ENST00000456328.2这样的ID。
+#如果您使用的转录组文件不是从gencode数据库下载的，那么您不需要使用这个选项，因为您的文件中可能没有这些额外的元数据，或者它们的格式不同。
+一个较小的 k 值可能会稍微提高灵敏度。灵敏度是指正确比对的 reads 占所有真实比对的 reads 的比例，它反映了比对算法的查全率。一个较小的 k 值意味着更容易找到有效的匹配，从而提高灵敏度。
+We find that a k of 31 seems to work well for reads of 75bp or longer, but you might consider a smaller k if you plan to deal with shorter reads.
+这句话的意思是，我们发现，对于长度为 75bp 或更长的 reads，一个 k 值为 31 的索引似乎工作得很好，但是如果您打算处理更短的 reads，您可能需要考虑一个更小的 k 值。这是因为，对于更短的 reads，一个较大的 k 值可能会导致找不到有效的匹配，从而降低灵敏度。
+Also, a shorter value of k may improve sensitivity even more when using selective alignment (enabled via the –validateMappings flag).
+这句话的意思是，另外，当使用 selective alignment 时，一个较短的 k 值可能会更加提高灵敏度（通过 --validateMappings 标志来启用）。
+"
+
+# salmon索引目录下的内容
+ls salmon_Taestivum_index
+
+# duplicate_clusters.tsv  hash.bin  header.json  indexing.log  quasi_index.log  
+# refInfo.json  rsd.bin  sa.bin  txpInfo.bin  versionInfo.json
+
+# 有些转录本名字不同，但序列完全一样，被鉴定出来只保留一个。
+head salmon_Taestivum_index/duplicate_clusters.tsv 
+
+# RetainedTxp	DuplicateTxp
+# ENST00000486475	ENST00000629881
+# ENST00000401322	ENST00000637366
+# ENST00000401322	ENST00000401376
+# ENST00000401322	ENST00000621667
+
+
+# 注意切换目录
+# 定量（上面已完成）
+# cd /u3/hekun/rnaseq/salmon
+
+# mkdir -p trt_N061011
+# 在读取文件之前，应在命令行上指定库类型 -l（即 -1 和 -2 或 -r 的参数）。这是因为库类型标志的内容用于确定应如何解释读取。
+# 或者，在任何情况下，您都可以简单地使用 --gcBias 运行 Salmon，因为它不会影响没有 GC 偏差的样品的定量，每个样品只需要多花几分钟。对于具有中度至高度 GC 偏倚的样品，在片段水平 ha 上对这种偏倚进行校正
+# salmon quant --gcBias -l A -1 trt_N061011_1.fq.gz -2 trt_N061011_2.fq.gz  -i genome/GRCh38.salmon -o trt_N061011/trt_N061011.salmon.count -p 4
+
+
+
+# 输出结果存储在 trt_N061011/trt_N061011.salmon.count目录中
+# quant.sf 为转录本表达定量结果，第4列为TPM结果，第5列为reads count
+# quant.genes.sf 为基因表达定量结果
+head trt_N061011/trt_N061011.salmon.count/quant.sf
+
+cd /u3/hekun/rnaseq/salmon
+
+# TAB键分割的样品分组信息
+# 这里是为了在流程中，方便操作
+# 实际上可以用任何文本编辑工具或者excel导出一个TAB键分割的文件，
+# 第一列是样本名字
+# 后面的列是样本分组或其它熟悉信息，记录越全越好
+# cat <<END 输入内容 END 输入结束
+# sed 's/|/\t/g': 把文件中所有的 | 替换为 \t
+# sed 's/original/replace/g'
+cat <<END | sed 's/|/\t/g' >sampleFile
+Samp	conditions
+ANTF1_FRAS202191140-1r	AN
+ANTF2_FRAS202191141-1r	AN
+ANTF3_FRAS202191142-1r	AN
+D10TF1_FRAS202191146-1r	D10
+D10TF2_FRAS202191147-1r	D10
+D10TF3_FRAS202191148-1r	D10
+D15TF1_FRAS202191149-1r	D15
+D15TF2_FRAS202191150-1r	D15
+D15TF3_FRAS202191151-1r	D15
+D20TF1_FRAS202191152-1r	D20
+D20TF2_FRAS202191153-1r	D20
+D20TF3_FRAS202191154-1r	D20
+D25TF1_FRAS202191155-1r	D25
+D25TF2_FRAS202191156-1r	D25
+D25TF3_FRAS202191157-1r	D25
+D30TF1_FRAS202191158-1r	D30
+D30TF2_FRAS202191159-2r	D30
+D30TF3_FRAS202191160-1r	D30
+D35TF1_FRAS202191161-1r	D35
+D35TF2_FRAS202191162-1r	D35
+D35TF3_FRAS202191163-1r	D35
+D5TF1_FRAS202191143-1r	D5
+D5TF2_FRAS202191144-1r	D5
+D5TF3_FRAS202191145-1r	D5
+GATF1_FRAS202191128-1r	GA
+GATF2_FRAS202191129-1r	GA
+GATF3_FRAS202191130-1r	GA
+HDTF1_FRAS202191137-1r	HD
+HDTF2_FRAS202191138-1r	HD
+HDTF3_FRAS202191139-1r	HD
+TPTF1_FRAS202191134-1r	TP
+TPTF2_FRAS202191135-1r	TP
+TPTF3_FRAS202191136-1r	TP
+YATF1_FRAS202191131-1r	YA
+YATF2_FRAS202191132-1r	YA
+YATF3_FRAS202191133-1r	YA
+END
+
+
+# 批量定量（上面已完成）
+# cd /u3/hekun/rnaseq/2.cleandata
+# for i in `tail -n +2 sampleFile | cut -f 1`
+# 从第二行开始读，并取第一列
+# do
+#   salmon quant -l A -1 ${i}_1.fq.gz -2 ${i}_2.fq.gz  -i genome/GRCh38.salmon \
+#     -o ${i}/${i}.salmon.count -p 4
+# done
+# 
+# for i in `tail -n +2 sampleFile | cut -f 1`
+# do
+#   echo "salmon quant -l A -1 ${i}_1.fq.gz -2 ${i}_2.fq.gz  -i genome/GRCh38.salmon -o ${i}/${i}.salmon.count -p 4"
+# done
+
+
+# 批量定量（上面已完成）
+# -g genome/GRCh38.gtf: 同时输出基因的定量结果，默认只有转录本定量结果
+cd /u3/hekun/rnaseq/2.cleandata
+for i in `tail -n +2 sampleFile | cut -f 1`
+# 从第二行开始读，并取第一列
+do
+  salmon quant --gcBias -l A -1 ${i}_1.fq.gz -2 ${i}_2.fq.gz  -i genome/GRCh38.salmon \
+    -o ${i}/${i}.salmon.count -p 4 >${i}.salmon.log 2>&1
+  # 给每个结果增加样本信息，方便后续合并
+done &
+
+
+
+# for i in `tail -n +2 sampleFile | cut -f 1`
+# do
+#   echo "salmon quant --gcBias -l A -1 ${i}_1.fq.gz -2 ${i}_2.fq.gz  -i genome/GRCh38.salmon -g genome/GRCh38.gtf -o ${i}/${i}.salmon.count -p 4 >${i}.salmon.log 2>&1"
+# done
+
+# 利用multiqc整理salmon的输出日志
+
+# -f覆盖之前的日志
+multiqc -f -d . -o multiqc/
+
+
+#[INFO   ]         multiqc : This is MultiQC v1.6
+#[INFO   ]         multiqc : Template    : default
+#[INFO   ]         multiqc : Prepending directory to sample names
+#[INFO   ]         multiqc : Searching '.'
+#Searching 188 files..  [####################################]  100%             
+#[INFO   ]           rseqc : Found 2 read_distribution reports
+#[INFO   ]          salmon : Found 8 meta reports
+#[INFO   ]          salmon : Found 8 fragment length distributions
+#[INFO   ]          fastqc : Found 16 reports
+#[INFO   ]         multiqc : Compressing plot data
+#[WARNING]         multiqc : Previous MultiQC output found! Adjusting filenames..
+#[WARNING]         multiqc : Use -f or --force to overwrite existing reports instead
+#[INFO   ]         multiqc : Report      : multiqc/multiqc_report.html
+#[INFO   ]         multiqc : Data        : multiqc/multiqc_data_1
+#[INFO   ]         multiqc : MultiQC complete
+
+
+
+
+cd /u3/hekun/rnaseq/salmon
+# 列出salmon的输出文件
+find . -name quant.sf
+# ./trt_N080611/trt_N080611.salmon.count/quant.sf
+# ./trt_N061011/trt_N061011.salmon.count/quant.sf
+# ./untrt_N61311/untrt_N61311.salmon.count/quant.sf
+
+# 这个压缩包下载解压到本地，这是为了下载到电脑上，服务器分析就不用，如果用电脑R分析，则需要
+zip salmon.output.zip `find . -name quant.sf`
+
+# 这一步不用了，使用我写的另一个步骤导入，生成一个两列文件方便R导入
+# xargs接收上一步的输出，按批次提供给下游程序作为输入
+# -i: 用{}表示传递的值
+# cut -f 1 sampleFile | xargs -i echo -e "{}\tquants/{}_quant/quant.sf" >salmon.output
+# head salmon.output
+# Samp    Samp/Samp.salmon.count/quant.sf
+# ANTF1_FRAS202191140-1r   quants/ANTF1_FRAS202191140-1r_quant/quant.sf
+# ANTF2_FRAS202191141-1r   quants/ANTF2_FRAS202191141-1r_quant/quant.sf
+
+
+
+
+# 如果没有GTF文件，可以用其他文件，只需获取转录本和基因名字对应关系就可以
+# 如果不知道对应关系，也可以把每个转录本当做一个基因进行分析
+# 注意修改$14, $10为对应的信息列，
+# tx2gene为一个两列文件，第一列是转录本没名字，第二列是基因名字。
+sed 's/"/\t/g' genome/GRCh38.gtf | \
+  awk 'BEGIN{OFS=FS="\t"}{if(FNR==1) print "TXname\tGene"; if($3=="transcript") print $14, $10}' >genome/GRCh38.tx2gene
+head genome/GRCh38.tx2gene
+# TXname  Gene
+# ENST00000608838 ENSG00000178591
+# ENST00000382410 ENSG00000178591
+# ENST00000382398 ENSG00000125788
+# ENST00000542572 ENSG00000125788
+
+# R代码，在本地windows运行
+# library("tximport")
+# library("readr")
+# salmon_file <- read.table("salmon.output", header=T,  row.names=1, sep="\t")
+# tx2gene <- read.table("genome/GRCh38.tx2gene", header=T, row.names=NULL, sep="\t")
+# txi <- tximport(salmon_file, type = "salmon",  tx2gene = tx2gene)
+# dds <- DESeqDataSetFromTximport(txi,  sample,  ~conditions)
+
+
+至此就完成了基于Salmon的所有样本基因和转录本的定量。
+
+
+# 合并转录本表达量
+
+#cd /u3/hekun/rnaseq/salmon
+#paste `find . -name *.salmon.gene.count.tab` | \
+#  awk 'BEGIN{OFS=FS="\t" }{line=$1; \
+#    for(i=2;i<=NF;i++) if(i%2==0) {if(FNR==1) count=$i; else count=int($i+0.5); line=line"\t"count;} print line;}' \
+#  >ehbio_trans.Count_matrix.xls
+#head ehbio_trans.Count_matrix.xls
+
+#--------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
+
+
+```

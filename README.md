@@ -7,9 +7,10 @@ orkj3401772k2ei3
 
 **home光标回到开头
 clear清屏
+gzip -d Triticum_aestivum.IWGSC.58.gtf.gz 解压文件
 
  free -h查看服务器内存
-top -h查看进程及使用内存
+top 查看进程及使用内存
 
 ls列出目录内容
 ls 命令用来列出目录内容
@@ -890,6 +891,16 @@ cd /u3/hekun/rnaseq/salmon
 # GRCh38.transcript.fa：待分析的cDNA文件，转录本序列fasta文件
 # GRCh38.salmon： salmon索引输出文件夹
 #这段是易生信的，但是太简单，下列未注释的代码是根据官网重新写的全面的构建索引和定量salmon index -t GRCh38.transcript.fa -i GRCh38.salmon
+
+
+gzip Taestivum.dna.toplevel.fa
+gzip Taestivum.cdna.fa
+
+#这里的cdna文件就是文档中说的转录组文件，这两条命令会将原文件压缩为.gz格式，并且删除原文件。如果您想保留原文件，您可以加上-k选项，例如：
+
+gzip -k Taestivum.dna.toplevel.fa
+gzip -k Taestivum.cdna.fa
+#这两条命令会在原文件的基础上生成.gz格式的文件，但不会删除原文件。
 #这里的cdna文件就是文档中说的转录组文件，这两条命令会将原文件压缩为.gz格式，并且删除原文件。如果您想保留原文件，您可以加上-k选项，例如：
 grep "^>" <(gunzip -c Taestivum.dna.toplevel.fa.gz) | cut -d " " -f 1 > /u3/hekun/rnaseq/salmon/decoys.txt
 sed -i.bak -e 's/>//g' /u3/hekun/rnaseq/salmon/decoys.txt
@@ -1020,43 +1031,44 @@ cd /u3/hekun/rnaseq/salmon
 # sed 's/|/\t/g': 把文件中所有的 | 替换为 \t
 # sed 's/original/replace/g'
 cat <<END | sed 's/|/\t/g' >sampleFile
-Samp	conditions
-ANTF1_FRAS202191140-1r	AN
-ANTF2_FRAS202191141-1r	AN
-ANTF3_FRAS202191142-1r	AN
-D10TF1_FRAS202191146-1r	D10
-D10TF2_FRAS202191147-1r	D10
-D10TF3_FRAS202191148-1r	D10
-D15TF1_FRAS202191149-1r	D15
-D15TF2_FRAS202191150-1r	D15
-D15TF3_FRAS202191151-1r	D15
-D20TF1_FRAS202191152-1r	D20
-D20TF2_FRAS202191153-1r	D20
-D20TF3_FRAS202191154-1r	D20
-D25TF1_FRAS202191155-1r	D25
-D25TF2_FRAS202191156-1r	D25
-D25TF3_FRAS202191157-1r	D25
-D30TF1_FRAS202191158-1r	D30
-D30TF2_FRAS202191159-2r	D30
-D30TF3_FRAS202191160-1r	D30
-D35TF1_FRAS202191161-1r	D35
-D35TF2_FRAS202191162-1r	D35
-D35TF3_FRAS202191163-1r	D35
-D5TF1_FRAS202191143-1r	D5
-D5TF2_FRAS202191144-1r	D5
-D5TF3_FRAS202191145-1r	D5
-GATF1_FRAS202191128-1r	GA
-GATF2_FRAS202191129-1r	GA
-GATF3_FRAS202191130-1r	GA
-HDTF1_FRAS202191137-1r	HD
-HDTF2_FRAS202191138-1r	HD
-HDTF3_FRAS202191139-1r	HD
-TPTF1_FRAS202191134-1r	TP
-TPTF2_FRAS202191135-1r	TP
-TPTF3_FRAS202191136-1r	TP
-YATF1_FRAS202191131-1r	YA
-YATF2_FRAS202191132-1r	YA
-YATF3_FRAS202191133-1r	YA
+untrt_N61311|untrt
+Samp|conditions
+ANTF1_FRAS202191140-1r|AN
+ANTF2_FRAS202191141-1r|AN
+ANTF3_FRAS202191142-1r|AN
+D10TF1_FRAS202191146-1r|D10
+D10TF2_FRAS202191147-1r|D10
+D10TF3_FRAS202191148-1r|D10
+D15TF1_FRAS202191149-1r|D15
+D15TF2_FRAS202191150-1r|D15
+D15TF3_FRAS202191151-1r|D15
+D20TF1_FRAS202191152-1r|D20
+D20TF2_FRAS202191153-1r|D20
+D20TF3_FRAS202191154-1r|D20
+D25TF1_FRAS202191155-1r|D25
+D25TF2_FRAS202191156-1r|D25
+D25TF3_FRAS202191157-1r|D25
+D30TF1_FRAS202191158-1r|D30
+D30TF2_FRAS202191159-2r|D30
+D30TF3_FRAS202191160-1r|D30
+D35TF1_FRAS202191161-1r|D35
+D35TF2_FRAS202191162-1r|D35
+D35TF3_FRAS202191163-1r|D35
+D5TF1_FRAS202191143-1r|D5
+D5TF2_FRAS202191144-1r|D5
+D5TF3_FRAS202191145-1r|D5
+GATF1_FRAS202191128-1r|GA
+GATF2_FRAS202191129-1r|GA
+GATF3_FRAS202191130-1r|GA
+HDTF1_FRAS202191137-1r|HD
+HDTF2_FRAS202191138-1r|HD
+HDTF3_FRAS202191139-1r|HD
+TPTF1_FRAS202191134-1r|TP
+TPTF2_FRAS202191135-1r|TP
+TPTF3_FRAS202191136-1r|TP
+YATF1_FRAS202191131-1r|YA
+YATF2_FRAS202191132-1r|YA
+YATF3_FRAS202191133-1r|YA
 END
 
 
@@ -1131,8 +1143,8 @@ zip salmon.output.zip `find . -name quant.sf`
 # 这一步不用了，使用我写的另一个步骤导入，生成一个两列文件方便R导入
 # xargs接收上一步的输出，按批次提供给下游程序作为输入
 # -i: 用{}表示传递的值
-# cut -f 1 sampleFile | xargs -i echo -e "{}\tquants/{}_quant/quant.sf" >salmon.output
-# head salmon.output
+cut -f 1 sampleFile | xargs -i echo -e "{}\tquants/{}_quant/quant.sf" >salmon.output
+head salmon.output
 # Samp    Samp/Samp.salmon.count/quant.sf
 # ANTF1_FRAS202191140-1r   quants/ANTF1_FRAS202191140-1r_quant/quant.sf
 # ANTF2_FRAS202191141-1r   quants/ANTF2_FRAS202191141-1r_quant/quant.sf
@@ -1144,9 +1156,13 @@ zip salmon.output.zip `find . -name quant.sf`
 # 如果不知道对应关系，也可以把每个转录本当做一个基因进行分析
 # 注意修改$14, $10为对应的信息列，
 # tx2gene为一个两列文件，第一列是转录本没名字，第二列是基因名字。
-sed 's/"/\t/g' genome/GRCh38.gtf | \
-  awk 'BEGIN{OFS=FS="\t"}{if(FNR==1) print "TXname\tGene"; if($3=="transcript") print $14, $10}' >genome/GRCh38.tx2gene
-head genome/GRCh38.tx2gene
+#sed 's/"/\t/g' genome/GRCh38.gtf | \ # <1> 使用 sed 命令将 genome/GRCh38.gtf 文件中的双引号替换为制表符，并将结果输出到管道
+#  awk 'BEGIN{OFS=FS="\t"}{if(FNR==1) print "TXname\tGene"; if($3=="transcript") print $14, $10}' >genome/GRCh38.tx2gene # <2> 使用 awk 命令从管道中读取数据，设置输出字段分隔符和输入字段分隔符为制表符，在输出文件第一行，则打印标题行，如果是第三列为 transcript 的行，则打印第十四列和第十列，即转录本名和基因名，并将结果重定向到 genome/GRCh38.tx2gene 文件中
+# head genome/GRCh38.tx2gene # <3> 使用 head 命令显示 genome/GRCh38.tx2gene 文件的前十行
+#要使用ensemble下载的最新版，不要用自己使用gff生成的，还有基因和转录本id要根据文件自己去数一数在第几列，不同情况下可能不同
+sed 's/"/\t/g' /u3/hekun/rnaseq/salmon/Triticum_aestivum.IWGSC.58.gtf | \
+  awk 'BEGIN{OFS=FS="\t"}{if(FNR==1) print "TXname\tGene"; if($3=="transcript") print $12, $10}' >/u3/hekun/rnaseq/salmon/Taestivum.58.tx2gene
+head Taestivum.58.tx2gene
 # TXname  Gene
 # ENST00000608838 ENSG00000178591
 # ENST00000382410 ENSG00000178591
@@ -1154,12 +1170,12 @@ head genome/GRCh38.tx2gene
 # ENST00000542572 ENSG00000125788
 
 # R代码，在本地windows运行
-# library("tximport")
-# library("readr")
-# salmon_file <- read.table("salmon.output", header=T,  row.names=1, sep="\t")
-# tx2gene <- read.table("genome/GRCh38.tx2gene", header=T, row.names=NULL, sep="\t")
-# txi <- tximport(salmon_file, type = "salmon",  tx2gene = tx2gene)
-# dds <- DESeqDataSetFromTximport(txi,  sample,  ~conditions)
+library("tximport")
+library("readr")
+salmon_file <- read.table("salmon.output", header=T,  row.names=1, sep="\t")
+tx2gene <- read.table("genome/GRCh38.tx2gene", header=T, row.names=NULL, sep="\t")
+txi <- tximport(salmon_file, type = "salmon",  tx2gene = tx2gene)
+dds <- DESeqDataSetFromTximport(txi,  sample,  ~conditions)
 
 
 至此就完成了基于Salmon的所有样本基因和转录本的定量。
@@ -1177,5 +1193,3 @@ head genome/GRCh38.tx2gene
 #--------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------
 
-
-```

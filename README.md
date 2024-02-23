@@ -1338,7 +1338,7 @@ library("BiocParallel")
 library("ImageGP")
 ```
 
-## 初始化，定义输入、输出和参数
+##初始化，定义输入、输出和参数
 
 ```{r}
 # Prefix for all output file 
@@ -1358,13 +1358,13 @@ type="salmon"
 padj=0.05
 log2FC=1
 ```
-## 数据读入和标准化
+##数据读入和标准化
 
 ```{r}
 dds <- salmon2deseq(file, sampleFile, design=design, tx2gene=tx2gene)
 normexpr <- deseq2normalizedExpr(dds)
 ```
-## 检查标准化后数据的分布
+##检查标准化后数据的分布
 
 ```{r}
 # normalizedExpr2DistribBoxplot(normexpr, 
@@ -1372,7 +1372,7 @@ normexpr <- deseq2normalizedExpr(dds)
 normalizedExpr2DistribBoxplot(normexpr)
 ```
 
-## 样本聚类
+##样本聚类
 
 ```{r}
 # clusterSampleHeatmap2(normexpr$rlog, 
@@ -1569,7 +1569,7 @@ knitr::opts_chunk$set(cache=TRUE, autodep=TRUE)
 #Sys.setlocale(, 'Chinese')
 ```
 
-## 基因表达标准化
+##基因表达标准化
 
 不同样品的测序量会有差异，最简单的标准化方式是计算 `counts per million (CPM)`，即原始`reads count`除以总reads数乘以1,000,000。
 
@@ -1601,7 +1601,7 @@ calc_sf2 <- function (expr_mat, spikes=NULL){
 }
 ```
 
-## 模拟获得size factor
+##模拟获得size factor
 
 ```{r}
 matrix <- matrix(sample(0:10,16, replace=T),nrow=4)
@@ -1665,7 +1665,7 @@ calc_uq <- function (expr_mat, spikes=NULL){
 **TMM**是M-值的加权截尾均值。选定一个样品为参照，其它样品中基因的表达相对于参照样品中对应基因表达倍数的log2值定义为M-值。随后去除M-值中最高和最低的30%，剩下
 的M值计算加权平均值。每一个非参照样品的基因表达值都乘以计算出的TMM。这个方法假设大部分基因的表达是没有差异的。
 
-## 安装依赖的包
+##安装依赖的包
 
 ```{r, eval=F, echo=T}
 if (FALSE){
@@ -1677,7 +1677,7 @@ if (FALSE){
 }
 ```
 
-## 加载依赖的包
+##加载依赖的包
 
 ```{r, include=F}
 library("RColorBrewer")
@@ -1693,7 +1693,7 @@ library("tximport")
 library("readr")
 ```
 
-## 文件准备
+##文件准备
 
 代码来源于流程`pipeline_salmon.sh`，以其为准。
 
@@ -1701,7 +1701,7 @@ library("readr")
 knitr::include_graphics("salmon_result_for_deseq2.png")
 ```
 
-## 初始化
+##初始化
 
 使用时只需要修改 `salmon.output`和`sampleFile` 即可。分组信息列必须是`conditionds`，如果不是，下面代码中的`conditions`也需相应的修改。这两个文件的获得见`12-转录组分析流程Salmon.pdf`的`整理Salmon结果`部分。
 
@@ -1738,13 +1738,13 @@ dds <- dds[keep,]
 print(paste(nrow(dds),"genes remained after filtering of genes with all counts less than", nrow(sample)/2, "in all samples"))
 ```
 
-## 差异分析
+##差异分析
 
 ```{r}
 dds <- DESeq(dds)
 ```
 
-## 输出标准化后的结果
+##输出标准化后的结果
 
 标准化后的结果按整体差异大小排序，同时输出对数转换的结果。
 
@@ -1775,7 +1775,7 @@ write.table(rlogMat_output, file=paste0(ehbio_output_prefix,".DESeq2.normalized.
 quote=F, sep="\t", row.names=F, col.names=T)
 ```
 
-## 标准化后样品的表达分布
+##标准化后样品的表达分布
 
 ```{r}
 rlog_mat_melt <- melt(rlogMat_output, id.vars = c('id'))
@@ -1785,7 +1785,7 @@ ggplot(rlog_mat_melt, aes(x=variable, y=value)) + geom_boxplot(aes(color=variabl
         axis.title.x = element_blank()) + ylab("rLog transformed expression value")
 ```
 
-## 样本层级聚类
+##样本层级聚类
 
 ```{r}
 print("Performing sample clustering")
@@ -1836,7 +1836,7 @@ p
 ggsave(filename=paste0(ehbio_output_prefix,".DESeq2.normalized.rlog.pearson.pdf"),width=13.5,height=15,units=c("cm"))
 ```
 
-## PCA聚类分析
+##PCA聚类分析
 
 
 ```{r pca}
@@ -1884,7 +1884,7 @@ pca_percentvar <- data.frame(PC=colnames(pca_x), Variance=pca_percentvar)
 write.table(pca_percentvar, file=paste0(ehbio_output_prefix,".DESeq2.pca_pc_weights.xls"), sep="\t", quote=F, row.names=F, col.names=T)
 ```
 
-## 两组样品基因差异分析
+##两组样品基因差异分析
 
 ```{r, de_twosample}
 
@@ -1978,7 +1978,7 @@ ggsave(p, filename=paste0(file_base1,".volcano.pdf"),width=13.5,height=15,units=
 p
 
 ```
-## 根据log2FolcChange排序基因
+##根据log2FolcChange排序基因
 
 ```{r}
 #head(res_output)
@@ -1998,7 +1998,7 @@ p
 p +  geom_text_repel(aes(label=ID))
 ```
 
-## Top20差异显著的基因
+##Top20差异显著的基因
 
 ```{r}
 res_de_up_top20_id <- as.vector(head(res_de_up$ID,20))
@@ -2008,7 +2008,7 @@ res_de_top20 <- c(res_de_up_top20_id, res_de_dw_top20_id)
 res_de_top20
 ```
 
-差异基因热图
+#差异基因热图
 
 ```{r, fig.height=8}
 # 可以把矩阵存储，提交到www.ehbio.com/ImageGP绘制火山图
@@ -2019,7 +2019,7 @@ library(pheatmap)
 pheatmap(res_de_top20_expr, cluster_row=T, scale="row", annotation_col=sample)
 ```
 
-差异基因散点图
+#差异基因散点图
 
 ```{r, fig.width=10}
 # 增加基因名字列
@@ -2052,7 +2052,7 @@ ggplot(res_de_top20_expr2, aes(x=Gene, y=Expression)) + geom_point(aes(color=Gro
 ```{r}
 head(res_de_top20_expr2)
 ```
-## 多组样品两两差异分析
+##多组样品两两差异分析
 
 定义样品两两比较函数
 
@@ -2169,7 +2169,7 @@ for(i in 1:(len_compare_data-1)) {
 
 
 
-## 结果文件描述
+##结果文件描述
 
 ```
 # 具体的文件内容和图的样式见后面的分步法文档
@@ -2206,7 +2206,7 @@ ehbio_trans.Count_matrix.xls.DESeq2.untrt._vs_.trt.results.xls
 ehbio_trans.Count_matrix.xls.DESeq2.untrt._vs_.trt.results.xls.volcano.pdf
 ```
 
-## 转换基因表的ENSEM id为gene symbol (为GSEA准备)
+##转换基因表的ENSEM id为gene symbol (为GSEA准备)
 
 ```{bash}
 cd /c/transcriptome/13_salmon_deseq2_go
@@ -2215,7 +2215,7 @@ awk 'BEGIN{OFS=FS="\t"}ARGIND==1{ensg2sym[$1]=$2;}ARGIND==2{if(FNR==1) print $0;
 head ehbio_salmon.DESeq2.normalized.symbol.txt
 ```
 
-## 提取Log2FC值并转换为gene symbol (为GSEA准备)
+##提取Log2FC值并转换为gene symbol (为GSEA准备)
 
 ```{r}
 suppressMessages(library(data.table))
@@ -2238,7 +2238,7 @@ merge_result <- merge_result[merge_result$Symbol!="", c(3,2)]
 write.table(merge_result, "ehbio_salmon.DESeq2.log2fc_ranked.symbol", col.names = T, row.names = F, sep="\t", quote=F)
 ```
 
-## 转换所有差异基因的名字为gene symbol 或 entrez id (为GO富集分析准备)
+##转换所有差异基因的名字为gene symbol 或 entrez id (为GO富集分析准备)
 
 ```{bash}
 # GRCh38.idmap从ENSEMBL Biomart下载，三列文件，第一列为ensembl ID，第二列为gene symbol, 第三列为entrez id
@@ -2252,7 +2252,7 @@ awk 'BEGIN{OFS=FS="\t"}ARGIND==1{symbol[$1]=$2;}\
 	>ehbio.DESeq2.all.DE.symbol
 ```
 
-## DEseq2分步计算
+##DEseq2分步计算
 
 ```
 if ("" != "") {

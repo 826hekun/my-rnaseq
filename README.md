@@ -1386,7 +1386,7 @@ clusterSampleUpperTriPlot(normexpr$rlog[1:5000,], cor_file=paste(output_prefix, 
 multipleGroupDEgenes(dds, design=design, output_prefix=output_prefix, padj=padj, log2FC=log2FC)
 ```
 
-## Replot
+##Replot
 
 ```{r}
 res_output <- read.table("ehbio.DESeq2.trt._vs_.untrt.results.xls", header=T, row.names=1)

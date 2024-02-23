@@ -1030,8 +1030,8 @@ cd /u3/hekun/rnaseq/salmon
 # cat <<END 输入内容 END 输入结束
 # sed 's/|/\t/g': 把文件中所有的 | 替换为 \t
 # sed 's/original/replace/g'
+#这里的Samp会成为绘制热推的行列名，很拥挤，以后起名字应该简单些
 cat <<END | sed 's/|/\t/g' >sampleFile
-untrt_N61311|untrt
 Samp|conditions
 ANTF1_FRAS202191140-1r|AN
 ANTF2_FRAS202191141-1r|AN
@@ -1145,7 +1145,7 @@ zip salmon.output.zip `find . -name quant.sf`
 # -i: 用{}表示传递的值
 cut -f 1 sampleFile | xargs -i echo -e "{}\tquants/{}_quant/quant.sf" >salmon.output
 head salmon.output
-# Samp    Samp/Samp.salmon.count/quant.sf
+# Samp    quants/Samp_quant/quant.sf
 # ANTF1_FRAS202191140-1r   quants/ANTF1_FRAS202191140-1r_quant/quant.sf
 # ANTF2_FRAS202191141-1r   quants/ANTF2_FRAS202191141-1r_quant/quant.sf
 
@@ -1168,28 +1168,8 @@ head Taestivum.58.tx2gene
 # ENST00000382410 ENSG00000178591
 # ENST00000382398 ENSG00000125788
 # ENST00000542572 ENSG00000125788
-
-# R代码，在本地windows运行
-library("tximport")
-library("readr")
-salmon_file <- read.table("salmon.output", header=T,  row.names=1, sep="\t")
-tx2gene <- read.table("genome/GRCh38.tx2gene", header=T, row.names=NULL, sep="\t")
-txi <- tximport(salmon_file, type = "salmon",  tx2gene = tx2gene)
-dds <- DESeqDataSetFromTximport(txi,  sample,  ~conditions)
-
+#使用conda安装R包devtools，用来在R中安装GitHub上的包
+conda install conda-forge::r-devtools
 
 至此就完成了基于Salmon的所有样本基因和转录本的定量。
-
-
-# 合并转录本表达量
-
-#cd /u3/hekun/rnaseq/salmon
-#paste `find . -name *.salmon.gene.count.tab` | \
-#  awk 'BEGIN{OFS=FS="\t" }{line=$1; \
-#    for(i=2;i<=NF;i++) if(i%2==0) {if(FNR==1) count=$i; else count=int($i+0.5); line=line"\t"count;} print line;}' \
-#  >ehbio_trans.Count_matrix.xls
-#head ehbio_trans.Count_matrix.xls
-
-#--------------------------------------------------------------------------------------------------
-#--------------------------------------------------------------------------------------------------
-
+```

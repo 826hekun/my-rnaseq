@@ -464,9 +464,11 @@ ln -s `pwd`/FastQC/fastqc ~/transcriptome/soft/
 
 ##Salmon安装
 
-#wget -c https://github.com/COMBINE-lab/salmon/archive/refs/tags/v1.10.1.tar.gz
-#tar xvzf v1.10.1.tar.gz
-#ln -s `pwd`/v1.10.1/bin/salmon ~/transcriptome/soft
+# wget https://github.com/COMBINE-lab/salmon/releases/download/v1.10.0/salmon-1.10.0_linux_x86_6.tar.gz
+#tar xsalmon-1.10.0_linux_x86_6.tar.gz
+#ln -s `pwd`/salmon-1.10.0_linux_x86_6.tar.gz/salmon ~/transcriptome/soft
+#也可以使用绝对路径
+
 
 ###安装conda
 
@@ -738,15 +740,4 @@ done
 
 
 
-# salmon定量
-要删除data文件夹下的所有子文件夹，只保留子文件夹中的文件
-可以使用find命令来查找data文件夹下的所有子文件夹，然后使用mv命令将子文件夹中的文件移动到data文件夹，最后使用rm命令删除空的子文件夹。具体的步骤如下：
-打开终端，进入到data文件夹所在的目录。
-输入以下命令，查找data文件夹下的所有子文件夹，并将结果保存到一个临时文件中。
-find data -type d > tmp.txt
-输入以下命令，读取临时文件中的每一行，将子文件夹中的文件移动到data文件夹，然后删除子文件夹。
-while read line; do mv "$line"/* data; rmdir "$line"; done < tmp.txt
-输入以下命令，删除临时文件。
-rm tmp.txt
-这样，你就可以实现你想要的效果，data文件夹下只剩下文件，没有子文件夹了。
-注意：在执行上述命令之前，建议你先备份你的数据，以防万一出现意外。另外，如果你的文件名中包含空格或特殊字符，你可能需要对文件名进行转义或引用，以避免错误。
+

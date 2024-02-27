@@ -465,9 +465,10 @@ ln -s `pwd`/FastQC/fastqc ~/transcriptome/soft/
 
 ##Salmon安装
 
-#wget -c https://github.com/COMBINE-lab/salmon/archive/refs/tags/v1.10.1.tar.gz
-#tar xvzf v1.10.1.tar.gz
-#ln -s `pwd`/v1.10.1/bin/salmon ~/transcriptome/soft
+# wget https://github.com/COMBINE-lab/salmon/releases/download/v1.10.0/salmon-1.10.0_linux_x86_6.tar.gz
+#tar xsalmon-1.10.0_linux_x86_6.tar.gz
+#ln -s `pwd`/salmon-1.10.0_linux_x86_6.tar.gz/salmon ~/transcriptome/soft
+#也可以使用绝对路径
 
 ###安装conda
 
